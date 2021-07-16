@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_whatsapp_chat_parser/data/constants.dart';
-import 'package:flutter_whatsapp_chat_parser/data/date_manager.dart';
 
 import '../models/chat_message.dart';
+import 'constants.dart';
+import 'date_manager.dart';
 
 abstract class ParserDataSource {
   Future<File?> pickFile();
@@ -81,11 +81,12 @@ class ParserDataSourceImplementation implements ParserDataSource {
 
     final listOfSplitString = chatMatch
         .groups(List<int>.generate(chatMatch.groupCount, (index) => index));
-    final chatMessage = message;
+    final chatMessage =
+        normalizeMessage(message, listOfSplitString.last!, null);
 
     return ChatMessage(
       time: dateManager.normalizeDate(listOfSplitString),
-      message: chatMessage,
+      message: chatMessage.trim(),
       sender: MessageSender.user,
       userName: listOfSplitString[4]?.trim(),
     );
@@ -96,12 +97,13 @@ class ParserDataSourceImplementation implements ParserDataSource {
         AppConstants.regexParserSystem.allMatches(message).first;
     final List<String?>? listOfSplitString = chatMatch
         .groups(List<int>.generate(chatMatch.groupCount, (index) => index));
-    final chatMessage = message;
-    print("NORMALIZED DATE ${dateManager.normalizeDate(listOfSplitString!)}");
-    print("NORMALIZED YEAR ${dateManager.normalizeDate(listOfSplitString)}");
-
+    String chatMessage = normalizeMessage(
+        message, listOfSplitString!.last, listOfSplitString[2]);
+    if (chatMessage.startsWith('-') || chatMessage.startsWith(' ')) {
+      chatMessage = chatMessage.substring(2);
+    }
     return ChatMessage(
-      message: chatMessage,
+      message: chatMessage.trim(),
       time: dateManager.normalizeDate(listOfSplitString),
       sender: MessageSender.system,
     );
@@ -117,5 +119,23 @@ class ParserDataSourceImplementation implements ParserDataSource {
     }
 
     return extractedFiles;
+  }
+
+  String normalizeMessage(
+    String message,
+    String? author,
+    String? messageTime,
+  ) {
+    if (author != null) {
+      final chatMessageIndex = message.indexOf(author);
+      return message.substring(chatMessageIndex + author.length + 1).trim();
+    } else if (messageTime != null) {
+      final chatMessageIndex = message.indexOf(messageTime);
+      return message
+          .substring(chatMessageIndex + messageTime.length + 1)
+          .trim();
+    } else {
+      return message;
+    }
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_whatsapp_chat_parser/data/date_manager.dart';
 import 'package:flutter_whatsapp_chat_parser/models/chat_message.dart';
+import 'package:flutter_whatsapp_chat_parser/widgets/chat_bubble.dart';
 
 import 'data/data_source.dart';
 
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter WhatsApp Chat Parser',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.teal,
       ),
       home: MyHomePage(
         title: 'WhatsApp chat parser',
@@ -36,43 +37,70 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool fileOpen = false;
+  bool loading = false;
   List<ChatMessage> allMessages = [];
+  List<MessageBubble> buildMessages(List<ChatMessage> allMessages) {
+    List<MessageBubble> allChatBubbles = [];
+    String firstAuthor = allMessages
+        .firstWhere((element) => element.sender == MessageSender.user)
+        .userName!;
+    String? cacheAuthor;
+    allMessages.forEach((chatMessage) {
+      if (cacheAuthor != chatMessage.userName) {
+        cacheAuthor = chatMessage.userName;
+        allChatBubbles.add(MessageBubble(
+          message: chatMessage,
+          isRight: firstAuthor == chatMessage.userName,
+          showAuthor: true,
+        ));
+      } else {
+        allChatBubbles.add(MessageBubble(
+          message: chatMessage,
+          isRight: firstAuthor == chatMessage.userName,
+          showAuthor: false,
+        ));
+      }
+    });
+    return allChatBubbles;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.teal[900],
       appBar: AppBar(
         title: Text(widget.title ?? ''),
       ),
-      body: Center(
-        child: fileOpen
-            ? Scrollbar(
-                thickness: 15,
-                child: ListView.separated(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    itemBuilder: (context, index) => Card(
-                        color: allMessages[index].sender == MessageSender.system
-                            ? Colors.green
-                            : Colors.white,
-                        child: Column(
-                          crossAxisAlignment:
-                              allMessages[index].sender == MessageSender.system
-                                  ? CrossAxisAlignment.center
-                                  : CrossAxisAlignment.start,
-                          children: [
-                            Text(allMessages[index].iNTLNormalizedTime),
-                            Text(allMessages[index].userName ?? ''),
-                            Text(allMessages[index].message!),
-                          ],
-                        )),
-                    separatorBuilder: (context, index) => SizedBox(
-                          height: 20,
+      body: loading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 10,
+              ),
+              child: Center(
+                child: fileOpen
+                    ? ListView(
+                        //crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: buildMessages(allMessages),
+                      )
+                    : Text(
+                        "Click the + button to add txt or zip(COMING SOON) file",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
                         ),
-                    itemCount: allMessages.length),
-              )
-            : Text("Click the + button to add txt file"),
-      ),
+                      ),
+              ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          setState(() {
+            loading = true;
+          });
           final parserFile =
               ParserDataSourceImplementation(dateManager: DateManager());
           final File? pickedFIle = await parserFile.pickFile();
@@ -88,8 +116,11 @@ class _MyHomePageState extends State<MyHomePage> {
               }
             });
           }
+          setState(() {
+            loading = false;
+          });
         },
-        tooltip: 'Add txt or zip file',
+        tooltip: 'Add txt or zip(COMING SOON) file',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );

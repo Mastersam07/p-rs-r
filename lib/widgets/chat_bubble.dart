@@ -1,64 +1,91 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../models/chat_message.dart';
 
 class MessageBubble extends StatelessWidget {
-  MessageBubble(this.message);
-
+  MessageBubble(
+      {required this.message, this.isRight = false, this.showAuthor = false});
   final ChatMessage message;
-
+  final bool isRight;
+  final bool showAuthor;
+  List<Color> authorColors = [
+    Colors.red,
+    Colors.orange,
+    Colors.purple,
+    Colors.blue,
+  ];
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        vertical: 3,
-      ),
-      child: Column(
-        crossAxisAlignment: message.containsLink
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.start,
-        children: <Widget>[
-          message.containsLink
-              ? Material(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                    bottomLeft: Radius.circular(10),
+    return message.sender == MessageSender.system
+        ? Center(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
+              margin: EdgeInsets.symmetric(
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.teal,
+              ),
+              child: Text(
+                message.message ?? '',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          )
+        : Align(
+            alignment: isRight ? Alignment.centerRight : Alignment.centerLeft,
+            child: Container(
+              margin: EdgeInsets.only(
+                top: !showAuthor ? 3 : 15,
+                left: isRight ? 50 : 0,
+                right: isRight ? 0 : 50,
+              ),
+              decoration: BoxDecoration(
+                color: isRight ? Colors.teal[300] : Colors.teal[800],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  showAuthor
+                      ? Text(
+                          message.userName ?? '',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: authorColors[Random().nextInt(3)]),
+                        )
+                      : SizedBox.shrink(),
+                  SizedBox(
+                    height: 4,
                   ),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                    child: Text(
-                      'text',
+                  Text(
+                    message.message ?? '',
+                    style: TextStyle(
+                      color: Colors.white,
                     ),
                   ),
-                )
-              : Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 8,
+                  SizedBox(
+                    height: 2,
+                  ),
+                  Text(
+                    message.iNTLNormalizedTime,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white.withOpacity(0.7),
                     ),
-                    Expanded(
-                      child: Material(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10),
-                          bottomRight: Radius.circular(10),
-                        ),
-                        color: Colors.green.withOpacity(0.1),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 5),
-                          child: Text(
-                            'text',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-        ],
-      ),
-    );
+                  ),
+                ],
+              ),
+            ),
+          );
   }
 }

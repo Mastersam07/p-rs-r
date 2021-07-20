@@ -94,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       )
                     : Text(
                         errorMessage ??
-                            "Click the + button to add txt or zip(COMING SOON) file",
+                            "Click the + button to add txt or zip file",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -138,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
             loading = false;
           });
         },
-        tooltip: 'Add txt or zip(COMING SOON) file',
+        tooltip: 'Add txt or zip file',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );

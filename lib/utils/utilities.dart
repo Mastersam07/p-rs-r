@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter_whatsapp_chat_parser/models/chat_message.dart';
 import 'package:mime/mime.dart';
+
+import '../models/chat_message.dart';
 
 bool isTxtFile(String? filePath,
     {Uint8List? fileBytes, bool ignorePath = false}) {

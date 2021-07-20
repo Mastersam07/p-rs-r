@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_whatsapp_chat_parser/error/app_exceptions.dart';
-import 'package:flutter_whatsapp_chat_parser/utils/utilities.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../error/app_exceptions.dart';
 import '../models/chat_message.dart';
+import '../utils/utilities.dart';
 import 'constants.dart';
 import 'date_manager.dart';
 

@@ -2,12 +2,12 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_whatsapp_chat_parser/data/date_manager.dart';
-import 'package:flutter_whatsapp_chat_parser/error/app_exceptions.dart';
-import 'package:flutter_whatsapp_chat_parser/models/chat_message.dart';
-import 'package:flutter_whatsapp_chat_parser/widgets/chat_bubble.dart';
 
 import 'data/data_source.dart';
+import 'data/date_manager.dart';
+import 'error/app_exceptions.dart';
+import 'models/chat_message.dart';
+import 'widgets/chat_bubble.dart';
 
 void main() {
   runApp(MyApp());

@@ -1,8 +1,11 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_whatsapp_chat_parser/error/app_exceptions.dart';
+import 'package:flutter_whatsapp_chat_parser/utils/utilities.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../models/chat_message.dart';
 import 'constants.dart';
@@ -33,62 +36,96 @@ class ParserDataSourceImplementation implements ParserDataSource {
   @override
   Future<List<ChatMessage>> parseFile(File file) async {
     File? txtFile;
+    List<File>? attachments;
     List<ChatMessage> parsedMessages = [];
     //Read each line of the file and join detached lines
     List<String> allJoinedMessages = [];
-    txtFile = file;
+    if (isZipFile(file.path)) {
+      List<File> allZipFiles = await unarchiveZipFile(file);
+      print(
+          "TXT FILE AVAILABLE ${allZipFiles.any((extract) => isTxtFile(extract.path))}");
+      if (allZipFiles.any((extract) => isTxtFile(extract.path))) {
+        txtFile = allZipFiles.firstWhere((element) => isTxtFile(element.path));
+        attachments =
+            allZipFiles.where((element) => !isTxtFile(element.path)).toList();
+      }
+    } else if (isTxtFile(file.path)) {
+      txtFile = file;
+    } else {
+      throw InvalidFileException();
+    }
+
     String? currentMessage;
-    await txtFile
-        .openRead()
-        .transform(utf8.decoder)
-        .transform(LineSplitter())
-        .forEach((messageLine) {
-      if (AppConstants.regexParser.hasMatch(messageLine.trim())) {
-        if (currentMessage != null) {
-          allJoinedMessages.add(currentMessage!);
+    if (txtFile != null) {
+      txtFile.readAsLinesSync().forEach((messageLine) {
+        if (AppConstants.regexParser.hasMatch(messageLine.trim())) {
+          if (currentMessage != null) {
+            allJoinedMessages.add(currentMessage!);
+          }
+          currentMessage = messageLine;
+        } else if (AppConstants.regexParserSystem.hasMatch(messageLine)) {
+          if (currentMessage != null) {
+            allJoinedMessages.add(currentMessage!);
+          }
+          currentMessage = messageLine;
+        } else {
+          if (currentMessage != null) {
+            currentMessage = currentMessage! + '\n' + messageLine;
+          }
         }
-        currentMessage = messageLine;
-      } else if (AppConstants.regexParserSystem.hasMatch(messageLine)) {
-        if (currentMessage != null) {
-          allJoinedMessages.add(currentMessage!);
+      });
+      dateManager.checkDateFormat(allJoinedMessages);
+      allJoinedMessages.forEach((messageLine) {
+        if (AppConstants.regexParser.hasMatch(messageLine.trim())) {
+          parsedMessages.add(parseUserMessage(
+            messageLine.trim(),
+            attachments: attachments,
+          ));
+        } else if (AppConstants.regexParserSystem.hasMatch(messageLine)) {
+          parsedMessages.add(
+            parseSystemMessages(messageLine.trim()),
+          );
         }
-        currentMessage = messageLine;
-      } else {
-        if (currentMessage != null) {
-          currentMessage = currentMessage! + '\n' + messageLine;
-        }
-      }
-    });
-    // print("ALL JOINED MESSAGES");
-    //log(allJoinedMessages.toString());
-    dateManager.checkDateFormat(allJoinedMessages);
-    allJoinedMessages.forEach((messageLine) {
-      if (AppConstants.regexParser.hasMatch(messageLine.trim())) {
-        parsedMessages.add(parseUserMessage(
-          messageLine.trim(),
-        ));
-      } else if (AppConstants.regexParserSystem.hasMatch(messageLine)) {
-        parsedMessages.add(
-          parseSystemMessages(messageLine.trim()),
-        );
-      }
-    });
-    return parsedMessages;
+      });
+      return parsedMessages;
+    } else {
+      throw TxtFileNotFoundException();
+    }
   }
 
-  ChatMessage parseUserMessage(String message) {
+  ChatMessage parseUserMessage(String message, {List<File>? attachments}) {
     RegExpMatch chatMatch = AppConstants.regexParser.allMatches(message).first;
-
+    File? attachedFile;
     final listOfSplitString = chatMatch
         .groups(List<int>.generate(chatMatch.groupCount, (index) => index));
-    final chatMessage =
+    String chatMessage =
         normalizeMessage(message, listOfSplitString.last!, null);
-
+    if (attachments != null) {
+      if (AppConstants.regexAttachment.hasMatch(message)) {
+        RegExpMatch attachmentMatch =
+            AppConstants.regexAttachment.allMatches(message).first;
+        final attachmentMatchList = attachmentMatch.groups(
+            List<int>.generate(attachmentMatch.groupCount, (index) => index));
+        final String? attachmentName = attachmentMatchList.last?.trim();
+        if (attachmentName != null) {
+          if (attachments
+              .any((element) => basename(element.path) == attachmentName)) {
+            attachedFile = attachments.firstWhere(
+                (element) => basename(element.path) == attachmentName);
+            chatMessage = chatMessage.replaceAll(
+                '${attachmentMatchList.first?.trim()}', '');
+          }
+        }
+      }
+    }
     return ChatMessage(
       time: dateManager.normalizeDate(listOfSplitString),
       message: chatMessage.trim(),
       sender: MessageSender.user,
       userName: listOfSplitString[4]?.trim(),
+      attachedFile: attachedFile,
+      attachmentType:
+          attachedFile != null ? determineAttachmentType(attachedFile) : null,
     );
   }
 
@@ -111,13 +148,19 @@ class ParserDataSourceImplementation implements ParserDataSource {
 
   Future<List<File>> unarchiveZipFile(File zipFile) async {
     List<File> extractedFiles = [];
+    final _dir = await getTemporaryDirectory();
     final zipDecoder = ZipDecoder();
     final zipBytes = await zipFile.readAsBytes();
     final archive = zipDecoder.decodeBytes(zipBytes);
     for (var file in archive) {
-      if (file.isFile) extractedFiles.add(File.fromRawPath(file.content));
+      var fileName = '${_dir.path}/${file.name}';
+      if (file.isFile) {
+        var outFile = File(fileName);
+        outFile = await outFile.create(recursive: true);
+        final extractedFile = await outFile.writeAsBytes(file.content);
+        extractedFiles.add(extractedFile);
+      }
     }
-
     return extractedFiles;
   }
 

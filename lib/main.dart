@@ -1,7 +1,9 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_whatsapp_chat_parser/data/date_manager.dart';
+import 'package:flutter_whatsapp_chat_parser/error/app_exceptions.dart';
 import 'package:flutter_whatsapp_chat_parser/models/chat_message.dart';
 import 'package:flutter_whatsapp_chat_parser/widgets/chat_bubble.dart';
 
@@ -36,32 +38,37 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String? errorMessage;
   bool fileOpen = false;
   bool loading = false;
   List<ChatMessage> allMessages = [];
   List<MessageBubble> buildMessages(List<ChatMessage> allMessages) {
     List<MessageBubble> allChatBubbles = [];
-    String firstAuthor = allMessages
-        .firstWhere((element) => element.sender == MessageSender.user)
-        .userName!;
-    String? cacheAuthor;
-    allMessages.forEach((chatMessage) {
-      if (cacheAuthor != chatMessage.userName) {
-        cacheAuthor = chatMessage.userName;
-        allChatBubbles.add(MessageBubble(
-          message: chatMessage,
-          isRight: firstAuthor == chatMessage.userName,
-          showAuthor: true,
-        ));
-      } else {
-        allChatBubbles.add(MessageBubble(
-          message: chatMessage,
-          isRight: firstAuthor == chatMessage.userName,
-          showAuthor: false,
-        ));
-      }
-    });
-    return allChatBubbles;
+    //HANDLE FIRST WHERE
+    if (allMessages.isNotEmpty) {
+      String firstAuthor = allMessages
+          .firstWhere((element) => element.sender == MessageSender.user)
+          .userName!;
+      String? cacheAuthor;
+      allMessages.forEach((chatMessage) {
+        if (cacheAuthor != chatMessage.userName) {
+          cacheAuthor = chatMessage.userName;
+          allChatBubbles.add(MessageBubble(
+            message: chatMessage,
+            isRight: firstAuthor == chatMessage.userName,
+            showAuthor: true,
+          ));
+        } else {
+          allChatBubbles.add(MessageBubble(
+            message: chatMessage,
+            isRight: firstAuthor == chatMessage.userName,
+            showAuthor: false,
+          ));
+        }
+      });
+      return allChatBubbles;
+    }
+    return [];
   }
 
   @override
@@ -86,7 +93,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: buildMessages(allMessages),
                       )
                     : Text(
-                        "Click the + button to add txt or zip(COMING SOON) file",
+                        errorMessage ??
+                            "Click the + button to add txt or zip(COMING SOON) file",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -106,9 +114,19 @@ class _MyHomePageState extends State<MyHomePage> {
           final File? pickedFIle = await parserFile.pickFile();
           allMessages.clear();
           if (pickedFIle != null) {
-            final List<ChatMessage>? messages =
-                await parserFile.parseFile(pickedFIle);
-            if (messages != null) allMessages.addAll(messages);
+            List<ChatMessage>? messages;
+            try {
+              messages = await parserFile.parseFile(pickedFIle);
+            } on TxtFileNotFoundException catch (e) {
+              errorMessage = e.message;
+            } on InvalidFileException catch (e) {
+              errorMessage = e.message;
+            } catch (e) {
+              errorMessage = 'There was an error parsing file';
+              log("EXCEPTION $e");
+            }
+            if (messages != null && messages.isNotEmpty)
+              allMessages.addAll(messages);
             setState(() {
               if (allMessages.isNotEmpty) {
                 allMessages.sort((a, b) => a.time!.compareTo(b.time!));

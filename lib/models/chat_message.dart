@@ -13,6 +13,7 @@ class ChatMessage {
   final bool containsFile;
   final File? attachedFile;
   final AttachmentType? attachmentType;
+  bool hasFileAttached = false;
   ChatMessage({
     this.userName,
     this.message,
@@ -24,7 +25,9 @@ class ChatMessage {
     this.containsFile = false,
     this.attachmentType,
   }) : assert((attachmentType != null && attachedFile != null) ||
-            (attachmentType == null && attachedFile == null));
+            (attachmentType == null && attachedFile == null)) {
+    hasFileAttached = attachmentType != null && attachedFile != null;
+  }
   final DateFormat format = DateFormat.yMMMd().add_jm();
   String get iNTLNormalizedTime {
     if (time != null) {
@@ -34,7 +37,6 @@ class ChatMessage {
     }
   }
 
-  bool get hasFileAttached => attachmentType != null && attachedFile != null;
   String get attachedFileName => basename(attachedFile?.path ?? '');
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage();

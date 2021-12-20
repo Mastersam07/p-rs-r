@@ -59,7 +59,9 @@ class _AppAudioPlayerState extends State<AppAudioPlayer> {
         horizontal: 10,
       ),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(35), color: Colors.teal[600]),
+        borderRadius: BorderRadius.circular(35),
+        color: Color(0xFFDCF8C6),
+      ),
       child: Row(
         children: [
           CircleAvatar(

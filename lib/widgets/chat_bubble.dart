@@ -1,6 +1,11 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_whatsapp_chat_parser/utils/size_config.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:open_file/open_file.dart';
 
 import '../models/chat_message.dart';
@@ -30,19 +35,33 @@ class MessageBubble extends StatelessWidget {
       if (message.attachmentType == AttachmentType.image) {
         return Container(
           margin: bubbleMargin,
+          clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: isRight ? Colors.teal[300] : Colors.teal[800],
+            color: isRight ? Color(0xFFDCF8C6) : Colors.white,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             children: [
-              Image.file(message.attachedFile!),
-              Text(
-                message.message ?? '',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
+              Image.file(
+                message.attachedFile!,
               ),
+              if (message.message?.isNotEmpty ?? false)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 4,
+                    ),
+                    Text(
+                      message.message ?? '',
+                      style: GoogleFonts.poppins(
+                        color: Color(0xFF4D4D4D),
+                        fontSize: SizeConfig.textSize(12),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                )
             ],
           ),
         );
@@ -56,8 +75,9 @@ class MessageBubble extends StatelessWidget {
       } else if (message.attachmentType == AttachmentType.video) {
         return Container(
           margin: bubbleMargin,
+          clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: isRight ? Colors.teal[300] : Colors.teal[800],
+            color: isRight ? Color(0xFFDCF8C6) : Colors.white,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -66,15 +86,23 @@ class MessageBubble extends StatelessWidget {
               AppVideoPlayer(
                 videoFile: message.attachedFile!,
               ),
-              SizedBox(
-                height: 4,
-              ),
-              Text(
-                message.message ?? '',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
+              if (message.message?.isNotEmpty ?? false)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 4,
+                    ),
+                    Text(
+                      message.message ?? '',
+                      style: GoogleFonts.poppins(
+                        color: Color(0xFF4D4D4D),
+                        fontSize: SizeConfig.textSize(12),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                )
             ],
           ),
         );
@@ -91,13 +119,15 @@ class MessageBubble extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: Colors.teal[800],
+              color: isRight ? Color(0xFFDCF8C6) : Colors.white,
             ),
             child: Text(
               message.attachedFileName,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
+              style: GoogleFonts.poppins(
+                color: Color(0xFF4D4D4D),
+                fontSize: SizeConfig.textSize(12),
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -107,18 +137,24 @@ class MessageBubble extends StatelessWidget {
       return Container(
         margin: bubbleMargin,
         decoration: BoxDecoration(
-          color: isRight ? Colors.teal[300] : Colors.teal[800],
+          color: isRight ? Color(0xFFDCF8C6) : Colors.white,
           borderRadius: BorderRadius.circular(8),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+        padding: EdgeInsets.only(
+          left: SizeConfig.width(16),
+          right: SizeConfig.width(10),
+          top: SizeConfig.height(8),
+          bottom: SizeConfig.height(8),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             showAuthor
                 ? Text(
                     message.userName ?? '',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                    style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.textSize(14),
                         color: authorColors[Random().nextInt(3)]),
                   )
                 : SizedBox.shrink(),
@@ -127,8 +163,10 @@ class MessageBubble extends StatelessWidget {
             ),
             Text(
               message.message ?? '',
-              style: TextStyle(
-                color: Colors.white,
+              style: GoogleFonts.poppins(
+                color: Color(0xFF4D4D4D),
+                fontSize: SizeConfig.textSize(12),
+                fontWeight: FontWeight.w500,
               ),
             ),
             SizedBox(
@@ -136,9 +174,10 @@ class MessageBubble extends StatelessWidget {
             ),
             Text(
               message.iNTLNormalizedTime,
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.white.withOpacity(0.7),
+              style: GoogleFonts.poppins(
+                fontSize: SizeConfig.textSize(10),
+                fontWeight: FontWeight.w400,
+                color: Color(0xFFA7A7A7),
               ),
             ),
           ],
@@ -161,12 +200,14 @@ class MessageBubble extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                color: Colors.teal,
+                color: Colors.white,
               ),
               child: Text(
                 message.message ?? '',
-                style: TextStyle(
-                  color: Colors.white,
+                style: GoogleFonts.poppins(
+                  color: Color(0xFFCCCCCC),
+                  fontWeight: FontWeight.w500,
+                  fontSize: SizeConfig.textSize(12),
                 ),
               ),
             ),

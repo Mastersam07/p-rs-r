@@ -1,9 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_whatsapp_chat_parser/utils/size_config.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:open_file/open_file.dart';
@@ -13,8 +10,11 @@ import 'app_audio_player.dart';
 import 'app_video_player.dart';
 
 class MessageBubble extends StatelessWidget {
-  MessageBubble(
-      {required this.message, this.isRight = false, this.showAuthor = false});
+  MessageBubble({
+    required this.message,
+    this.isRight = false,
+    this.showAuthor = false,
+  });
   final ChatMessage message;
   final bool isRight;
   final bool showAuthor;

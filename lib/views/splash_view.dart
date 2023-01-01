@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_whatsapp_chat_parser/main.dart';
 import 'package:flutter_whatsapp_chat_parser/utils/size_config.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'messages_view.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({Key? key}) : super(key: key);
@@ -26,8 +26,8 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
       Future.delayed(Duration(seconds: 2), () async {
         animationController.forward().then((value) {
           Future.delayed(Duration(seconds: 1), () {
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => MyHomePage()));
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => MessagesView()));
           });
         });
       });

@@ -34,29 +34,34 @@ class ParserViewModel extends ChangeNotifier {
   parseInit() async {
     setState(state: ViewState.busy);
 
-    final File? pickedFIle = await parserDataSource.pickFile();
-    _allMessages.clear();
-    if (pickedFIle != null) {
-      List<ChatMessage>? messages;
-      try {
-        messages = await parserDataSource.parseFile(pickedFIle);
-      } on TxtFileNotFoundException catch (e) {
-        errorMessage = e.message;
-        setState(state: ViewState.error);
-      } on InvalidFileException catch (e) {
-        errorMessage = e.message;
-        setState(state: ViewState.error);
-      } catch (e) {
-        errorMessage = 'There was an error parsing file';
-        setState(state: ViewState.error);
-        log("EXCEPTION $e");
-      }
-      if (messages != null && messages.isNotEmpty)
-        _allMessages.addAll(messages);
-      if (_allMessages.isNotEmpty) {
-        _allMessages.sort((a, b) => a.time!.compareTo(b.time!));
-        setState(state: ViewState.done);
-      }
+    try {
+      final File? pickedFIle = await parserDataSource.pickFile();
+      _allMessages.clear();
+      if (pickedFIle != null) {
+        List<ChatMessage>? messages;
+        try {
+          messages = await parserDataSource.parseFile(pickedFIle);
+        } on TxtFileNotFoundException catch (e) {
+          errorMessage = e.message;
+          setState(state: ViewState.error);
+        } on InvalidFileException catch (e) {
+          errorMessage = e.message;
+          setState(state: ViewState.error);
+        } catch (e) {
+          errorMessage = 'There was an error parsing file';
+          setState(state: ViewState.error);
+          log("EXCEPTION $e");
+        }
+        if (messages != null && messages.isNotEmpty)
+          _allMessages.addAll(messages);
+        if (_allMessages.isNotEmpty) {
+          _allMessages.sort((a, b) => a.time!.compareTo(b.time!));
+          setState(state: ViewState.done);
+        }
+      } else
+        setState(state: ViewState.idle);
+    } catch (e) {
+      setState(state: ViewState.error);
     }
   }
 }

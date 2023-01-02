@@ -24,9 +24,9 @@ Star⭐ the repo if you like what you see😉.
 * [x] View exported chats without media
 * [x] Import exported chats with media
 * [x] View exported chats with media
+* [x] Group chats by day
 ## RoadMap ✨
 * [ ] UI Refresh
-* [ ] Group chats by day
 
 ## 📸 ScreenShots
 

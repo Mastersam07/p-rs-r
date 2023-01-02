@@ -28,7 +28,7 @@ class ChatMessage {
             (attachmentType == null && attachedFile == null)) {
     hasFileAttached = attachmentType != null && attachedFile != null;
   }
-  final DateFormat format = DateFormat.yMMMd().add_jm();
+  final DateFormat format = DateFormat.jm();
   String get iNTLNormalizedTime {
     if (time != null) {
       return format.format(time!);

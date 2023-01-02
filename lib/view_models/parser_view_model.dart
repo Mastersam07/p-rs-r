@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:developer';
 import 'dart:io';
 
@@ -7,6 +8,7 @@ import 'package:flutter_whatsapp_chat_parser/data/date_manager.dart';
 import 'package:flutter_whatsapp_chat_parser/error/app_exceptions.dart';
 import 'package:flutter_whatsapp_chat_parser/models/chat_message.dart';
 import 'package:flutter_whatsapp_chat_parser/widgets/view_state_builder.dart';
+import 'package:intl/intl.dart';
 
 class ParserViewModel extends ChangeNotifier {
   final ParserDataSource parserDataSource;
@@ -23,12 +25,29 @@ class ParserViewModel extends ChangeNotifier {
     _disposed = true;
   }
 
-  List<ChatMessage> _allMessages = [];
-  List<ChatMessage> get parsedMessages => _allMessages;
+  List<ChatMessage> _allMessages = <ChatMessage>[];
+  final _allMessagesGrouped = <String, Iterable<ChatMessage>>{};
+  UnmodifiableMapView<String, Iterable<ChatMessage>> get allMessages =>
+      UnmodifiableMapView(_allMessagesGrouped);
+
   setState({ViewState state = ViewState.idle, String? error}) {
     this.appState = state;
     this.errorMessage = error;
     if (!_disposed) notifyListeners();
+  }
+
+  void _addToMessagesList(Iterable<ChatMessage> list) {
+    _allMessages.addAll(list);
+
+    _allMessagesGrouped.clear();
+    final uniqueDateStrings =
+        _allMessages.map((message) => DateFormat.yMMMd().format(message.time!));
+
+    for (var dateString in uniqueDateStrings) {
+      _allMessagesGrouped[dateString] = _allMessages.where(
+        (message) => DateFormat.yMMMd().format(message.time!) == dateString,
+      );
+    }
   }
 
   parseInit() async {
@@ -53,7 +72,7 @@ class ParserViewModel extends ChangeNotifier {
           log("EXCEPTION $e");
         }
         if (messages != null && messages.isNotEmpty)
-          _allMessages.addAll(messages);
+          _addToMessagesList(messages);
         if (_allMessages.isNotEmpty) {
           _allMessages.sort((a, b) => a.time!.compareTo(b.time!));
           setState(state: ViewState.done);

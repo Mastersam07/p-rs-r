@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:intl/intl.dart';
 import 'package:mime/mime.dart';
 
 import '../models/chat_message.dart';
@@ -82,4 +83,23 @@ AttachmentType? determineAttachmentType(File? file) {
     return AttachmentType.other;
   }
   return null;
+}
+
+class DateFormatter {
+  String getVerboseDateTimeRepresentation(DateTime dateTime) {
+    final DateTime now = DateTime.now();
+    final DateTime localDateTime = dateTime.toLocal();
+    if (localDateTime.day == now.day &&
+        localDateTime.month == now.month &&
+        localDateTime.year == now.year) {
+      return "Today";
+    }
+    final DateTime yesterday = now.subtract(const Duration(days: 1));
+    if (localDateTime.day == yesterday.day &&
+        localDateTime.month == now.month &&
+        localDateTime.year == now.year) {
+      return "Yesterday";
+    }
+    return DateFormat.yMMMd().format(dateTime);
+  }
 }

@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../models/chat_message.dart';
 import '../utils/size_config.dart';
 import '../view_models/parser_view_model.dart';
-import '../widgets/chat_bubble.dart';
+import '../widgets/grouped_messages_tile.dart';
 import '../widgets/view_state_builder.dart';
 
 class MessagesView extends StatefulWidget {
@@ -18,35 +17,6 @@ class MessagesView extends StatefulWidget {
 }
 
 class _MessagesViewState extends State<MessagesView> {
-  List<MessageBubble> buildMessages(List<ChatMessage> allMessages) {
-    List<MessageBubble> allChatBubbles = [];
-    //HANDLE FIRST WHERE
-    if (allMessages.isNotEmpty) {
-      String firstAuthor = allMessages
-          .firstWhere((element) => element.sender == MessageSender.user)
-          .userName!;
-      String? cacheAuthor;
-      allMessages.forEach((chatMessage) {
-        if (cacheAuthor != chatMessage.userName) {
-          cacheAuthor = chatMessage.userName;
-          allChatBubbles.add(MessageBubble(
-            message: chatMessage,
-            isRight: firstAuthor == chatMessage.userName,
-            showAuthor: true,
-          ));
-        } else {
-          allChatBubbles.add(MessageBubble(
-            message: chatMessage,
-            isRight: firstAuthor == chatMessage.userName,
-            showAuthor: false,
-          ));
-        }
-      });
-      return allChatBubbles;
-    }
-    return [];
-  }
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<ParserViewModel>.value(
@@ -110,12 +80,19 @@ class _MessagesViewState extends State<MessagesView> {
                       image: AssetImage('assets/images/whatsappbg.png'),
                       fit: BoxFit.cover,
                     )),
-                    ListView(
+                    ListView.builder(
                       padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.width(24),
-                        vertical: SizeConfig.height(16),
+                        horizontal: 12,
+                        vertical: 12,
                       ),
-                      children: buildMessages(provider.parsedMessages),
+                      itemBuilder: (context, index) {
+                        final item =
+                            provider.allMessages.entries.elementAt(index);
+                        return GroupedMessagesTile(
+                          date: item.key,
+                          messages: item.value,
+                        );
+                      },
                     ),
                   ],
                 ),

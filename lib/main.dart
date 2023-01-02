@@ -11,6 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: appNavigatorKey,
+      debugShowCheckedModeBanner: false,
       title: 'Flutter WhatsApp Chat Parser',
       theme: ThemeData(
         primaryColor: Color(0xFF00C263),

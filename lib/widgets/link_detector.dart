@@ -22,7 +22,7 @@ class LinkDetectorText extends StatelessWidget {
             ),
             recognizer: (TapGestureRecognizer()
               ..onTap = () {
-                launch(element.trim());
+                launchUrl(Uri.parse(element.trim()));
               }),
           ));
         }
